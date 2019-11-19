@@ -262,8 +262,6 @@
             color: false
           }
         }
-
-        console.log(this.options.modules.toolbar)
       }
 
       this.options.modules.clipboard = this.options.modules.clipboard !== undefined ? this.options.modules.clipboard : this.defaultModules.clipboard
