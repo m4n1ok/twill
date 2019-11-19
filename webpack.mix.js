@@ -1,4 +1,5 @@
 let mix = require('laravel-mix')
+const path = require('path')
 
 /*
  |--------------------------------------------------------------------------
@@ -9,6 +10,14 @@ let mix = require('laravel-mix')
  | for your Laravel application.
  |
  */
+
+mix.extend('transpileNodeModule', webpackConfig => {
+  const { rules } = webpackConfig.module
+  rules.filter(rule => rule.exclude && rule.exclude.toString() === '/(node_modules|bower_components)/')
+    .forEach(rule => {
+      rule.exclude = /node_modules\/(?!(quill|quill-delta|parchment)\/).*/
+    })
+})
 
 mix.setPublicPath('public')
 
@@ -61,6 +70,7 @@ mix.js(
   'frontend/scss/app.scss',
   'public/assets/admin/css'
 )
+  .transpileNodeModule()
 
 mix.extract()
 

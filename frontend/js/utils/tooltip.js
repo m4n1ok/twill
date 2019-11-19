@@ -22,11 +22,13 @@ const DEFAULT_OPTIONS = {
 
 export default class Tooltip {
   constructor (ref, options) {
-    options = {...DEFAULT_OPTIONS, ...options}
+    options = { ...DEFAULT_OPTIONS, ...options }
 
     // save reference and options
     this.reference = ref
     this.options = options
+    this.innerSelector = '.tooltip__inner'
+    this._events = []
 
     // get events list
     const events = typeof options.trigger === 'string'
@@ -50,45 +52,40 @@ export default class Tooltip {
    * @method Tooltip#show
    * @memberof Tooltip
    */
-  show = () => this._show(this.reference, this.options)
+  show () {
+    return this._show(this.reference, this.options)
+  }
 
   /**
    * Hides an element’s tooltip. This is considered a “manual” triggering of the tooltip.
    * @method Tooltip#hide
    * @memberof Tooltip
    */
-  hide = () => this._hide()
+  hide () {
+    return this._hide()
+  }
 
   /**
    * Hides and destroys an element’s tooltip.
    * @method Tooltip#dispose
    * @memberof Tooltip
    */
-  dispose = () => this._dispose()
+  dispose () {
+    return this._dispose()
+  }
 
   /**
    * Toggles an element’s tooltip. This is considered a “manual” triggering of the tooltip.
    * @method Tooltip#toggle
    * @memberof Tooltip
    */
-  toggle = () => {
+  toggle () {
     if (this._isOpen) {
       return this.hide()
     } else {
       return this.show()
     }
   }
-
-  //
-  // Defaults
-  //
-  innerSelector = '.tooltip__inner'
-
-  //
-  // Private methods
-  //
-
-  _events = []
 
   /**
    * Creates a new tooltip node
@@ -289,7 +286,7 @@ export default class Tooltip {
   _dispose () {
     // remove event listeners
     if (this._events.length) {
-      this._events.forEach(({func, event}) => {
+      this._events.forEach(({ func, event }) => {
         this.reference.removeEventListener(event, func)
       })
       this._events = []
@@ -357,7 +354,7 @@ export default class Tooltip {
         evt.usedByTooltip = true
         this._scheduleShow(reference, options.delay, options, evt)
       }
-      this._events.push({event, func})
+      this._events.push({ event, func })
       reference.addEventListener(event, func)
     })
 
@@ -369,7 +366,7 @@ export default class Tooltip {
         }
         this._scheduleHide(reference, options.delay, options, evt)
       }
-      this._events.push({event, func})
+      this._events.push({ event, func })
       reference.addEventListener(event, func)
     })
   }
@@ -410,7 +407,7 @@ export default class Tooltip {
     }, computedDelay)
   }
 
-  _setTooltipNodeEvent = (evt, reference, delay, options) => {
+  _setTooltipNodeEvent (evt, reference, delay, options) {
     const relatedreference = evt.relatedreference || evt.toElement
 
     const callback = evt2 => {

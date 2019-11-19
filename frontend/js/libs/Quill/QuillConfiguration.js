@@ -1,4 +1,6 @@
 import Quill from 'quill'
+import QuillBetterTable from 'quill-better-table'
+
 let Delta = Quill.import('delta')
 let Break = Quill.import('blots/break')
 let Embed = Quill.import('blots/embed')
@@ -157,6 +159,10 @@ const QuillDefaultFormats = [
   'image',
   'video'
 ]
+
+Quill.register({
+  'modules/better-table': QuillBetterTable
+}, true)
 
 function getQuillFormats (toolbarEls) {
   const formats = [lineBreak.blotName] // Allow linebreak

@@ -1,14 +1,16 @@
 <template>
-  <a17-inputframe :error="error" :note="note" :label="label" :locale="locale" @localize="updateLocale" :size="size" :name="name" :required="required">
+  <a17-inputframe :error="error" :note="note" :label="label" :locale="locale" @localize="updateLocale" :size="size"
+                  :name="name" :required="required">
     <div class="wysiwyg__outer" :class="textfieldClasses">
-      <input :name="name" type="hidden" v-model="value" />
+      <input :name="name" type="hidden" v-model="value"/>
       <template v-if="editSource">
         <div class="wysiwyg" :class="textfieldClasses" v-show="!activeSource">
           <div class="wysiwyg__editor" ref="editor"></div>
           <span v-if="shouldShowCounter" class="input__limit f--tiny" :class="limitClasses">{{ counter }}</span>
         </div>
         <div class="form__field form__field--textarea" v-show="activeSource">
-          <textarea :placeholder="placeholder" :autofocus="autofocus" v-model="value" :style="textareaHeight"></textarea>
+          <textarea :placeholder="placeholder" :autofocus="autofocus" v-model="value"
+                    :style="textareaHeight"></textarea>
         </div>
         <a17-button variant="ghost" @click="toggleSourcecode" class="wysiwyg__button">Source code</a17-button>
       </template>
@@ -28,6 +30,7 @@
   import 'quill/dist/quill.snow.css'
   import 'quill/dist/quill.bubble.css'
   import 'quill/dist/quill.core.css'
+  import 'quill-better-table/dist/quill-better-table.css'
 
   import QuillConfiguration from '@/libs/Quill/QuillConfiguration'
 
@@ -149,8 +152,9 @@
         // init Quill
         this.quill = new QuillConfiguration.Quill(this.$refs.editor, this.options)
 
-        // set editor content
-        if (this.value) this.updateEditor(this.value)
+        // addHandler
+        const toolbar = this.quill.getModule('toolbar')
+        toolbar.addHandler('table', this.tableHandler)
 
         // update model if text changes
         this.quill.on('text-change', (delta, oldDelta, source) => {
@@ -198,13 +202,18 @@
           }
         }
 
+        // set editor content
+        if (this.value) this.updateEditor(this.value)
+
         // emit ready
         this.$emit('ready', this.quill)
       },
+      tableHandler () {
+        const tableModule = this.quill.getModule('better-table')
+        tableModule.insertTable(3, 3)
+      },
       updateEditor: function (newValue) {
-        // convert string to HTML and update the content silently
-        const htmlData = this.quill.clipboard.convert(newValue)
-        this.quill.setContents(htmlData, 'silent')
+        this.quill.clipboard.dangerouslyPasteHTML(newValue)
       },
       updateFromStore: function (newValue) { // called from the formStore mixin
         if (typeof newValue === 'undefined') newValue = ''
@@ -233,7 +242,7 @@
       },
       getTextLength: function () {
         // see https://quilljs.com/docs/api/#getlength
-        return this.quill.getLength() - (this.value.length === 0 ? 2 : 1)
+        return this.quill.getLength() - (this.value && this.value.length === 0 ? 2 : 1)
       }
     },
     mounted: function () {
@@ -244,6 +253,19 @@
       this.options.boundary = this.options.boundary || document.body
       this.options.modules = this.options.modules || this.defaultModules
       this.options.modules.toolbar = this.options.modules.toolbar !== undefined ? this.options.modules.toolbar : this.defaultModules.toolbar
+
+      const tableIndex = this.options.modules.toolbar.findIndex(el => el === 'table')
+      if (tableIndex > -1) {
+        // this.options.modules.table = true
+        this.options.modules['better-table'] = {
+          operationMenu: {
+            color: false
+          }
+        }
+
+        console.log(this.options.modules.toolbar)
+      }
+
       this.options.modules.clipboard = this.options.modules.clipboard !== undefined ? this.options.modules.clipboard : this.defaultModules.clipboard
       this.options.modules.keyboard = this.options.modules.keyboard !== undefined ? this.options.modules.keyboard : this.defaultModules.keyboard
       this.options.modules.syntax = this.options.modules.syntax !== undefined && this.options.modules.syntax ? { highlight: text => hljs.highlightAuto(text).value } : this.defaultModules.syntax
@@ -271,7 +293,7 @@
 
 <style lang="scss" scoped>
   .wysiwyg__button {
-    margin-top:20px;
+    margin-top: 20px;
   }
 </style>
 <style lang="scss">
@@ -281,84 +303,84 @@
   $height_input: 45px;
 
   .input__limit {
-    height:$height_input - 2px;
-    line-height:$height_input - 2px;
-    color:$color__text--light;
+    height: $height_input - 2px;
+    line-height: $height_input - 2px;
+    color: $color__text--light;
     user-select: none;
-    pointer-events:none;
-    position:absolute;
-    right:15px;
+    pointer-events: none;
+    position: absolute;
+    right: 15px;
     bottom: 55px;
   }
 
   .input__limit--red {
-    color:red;
+    color: red;
   }
 
   .a17 {
     .ql-toolbar.ql-snow {
-      border-top-left-radius:2px;
-      border-top-right-radius:2px;
+      border-top-left-radius: 2px;
+      border-top-right-radius: 2px;
       background-color: $color__f--bg;
-      font-family:inherit;
+      font-family: inherit;
     }
 
     .ql-editor.ql-blank::before {
       font-style: normal;
-      color:$color__f--placeholder;
+      color: $color__f--placeholder;
       @include font-regular;
     }
 
     .ql-container.ql-snow {
-      border-bottom-left-radius:2px;
-      border-bottom-right-radius:2px;
+      border-bottom-left-radius: 2px;
+      border-bottom-right-radius: 2px;
     }
 
     .ql-editor {
       background-color: $color__f--bg;
-      min-height:15px * 6;
+      min-height: 15px * 6;
       caret-color: $color__action;
-      color:$color__text--forms;
+      color: $color__text--forms;
 
       &:hover,
       &:focus {
-        background:$color__background;
+        background: $color__background;
       }
     }
 
     /* Default content styling */
     .ql-snow .ql-editor {
       h1, h2, h3, h4, h5, h6 {
-        font-weight:700;
+        font-weight: 700;
       }
 
       p, ul, ol, h1, h2, h3, h4, h5 {
-        margin-bottom:1em;
+        margin-bottom: 1em;
       }
 
       h1 {
         font-size: 2em;
-        line-height:1.25em;
+        line-height: 1.25em;
       }
 
       h2 {
         font-size: 1.66em;
-        line-height:1.25em;
+        line-height: 1.25em;
       }
 
       h3 {
         font-size: 1.33em;
-        line-height:1.25em;
+        line-height: 1.25em;
       }
 
       h4 {
         font-size: 1.25em;
-        line-height:1.25em;
+        line-height: 1.25em;
       }
 
       h5 {
         font-size: 1em;
-        line-height:1.25em;
+        line-height: 1.25em;
       }
 
       // default code syntax hightlighting is github
@@ -366,9 +388,9 @@
         color: $color__wysiwyg-codeText;
         padding: 15px;
         overflow: auto;
-        background-color:$color__wysiwyg-codeBg;
+        background-color: $color__wysiwyg-codeBg;
         border-radius: 3px;
-        font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
       }
 
       sup {
@@ -383,37 +405,38 @@
     }
 
     .ql-toolbar.ql-snow {
-      border-color:$color__fborder;
-      border-bottom-color:$color__border--light;
+      border-color: $color__fborder;
+      border-bottom-color: $color__border--light;
     }
 
     .ql-container.ql-snow {
-      border-color:$color__fborder;
+      border-color: $color__fborder;
     }
 
     .input--error {
       .ql-toolbar.ql-snow {
-        border-color:$color__error;
-        border-bottom-color:$color__border--light;
+        border-color: $color__error;
+        border-bottom-color: $color__border--light;
       }
 
       .ql-container.ql-snow {
-        border-color:$color__error;
+        border-color: $color__error;
       }
     }
 
     .s--focus {
       .ql-toolbar.ql-snow {
-        border-color:$color__fborder--hover;
-        border-bottom-color:$color__border--light;
+        border-color: $color__fborder--hover;
+        border-bottom-color: $color__border--light;
       }
+
       .ql-container.ql-snow {
-        border-color:$color__fborder--hover;
+        border-color: $color__fborder--hover;
       }
     }
 
     .ql-snow a {
-      color:$color__link;
+      color: $color__link;
     }
 
     .ql-snow.ql-toolbar {
@@ -423,24 +446,24 @@
       .ql-align {
         width: 24px;
         margin-right: 35px - 6px - 6px - 6px - 6px;
-        text-align:center;
+        text-align: center;
       }
 
       button.ql-underline {
-        top:1px;
+        top: 1px;
       }
 
       button.ql-link {
-        width:24px + 9px;
+        width: 24px + 9px;
       }
 
       .icon {
-        position:relative;
+        position: relative;
       }
     }
 
     .ql-snow.ql-toolbar .ql-formats {
-      border-right:1px solid $color__border--light;
+      border-right: 1px solid $color__border--light;
 
       &:last-child {
         border-right: none;
@@ -456,7 +479,7 @@
       .ql-picker-label.ql-active,
       .ql-picker-item:hover,
       .ql-picker-item.ql-selected {
-        color:$color__link;
+        color: $color__link;
       }
     }
 
@@ -476,7 +499,7 @@
       .ql-picker-label.ql-active .ql-stroke-miter,
       .ql-picker-item:hover .ql-stroke-miter,
       .ql-picker-item.ql-selected .ql-stroke-miter {
-        color:$color__link;
+        color: $color__link;
       }
     }
 
@@ -537,20 +560,20 @@
     }
 
     .ql-toolbar.ql-snow .ql-picker {
-      font-size:1em;
+      font-size: 1em;
     }
 
     .ql-toolbar.ql-snow .ql-picker .ql-picker-label {
       white-space: nowrap;
 
       &::before {
-        line-height:24px
+        line-height: 24px
       }
     }
 
     .ql-snow .ql-picker.ql-header {
-      width:auto;
-      min-width:120px;
+      width: auto;
+      min-width: 120px;
 
       .ql-picker-item,
       .ql-picker-item[data-value="1"],
@@ -559,8 +582,8 @@
       .ql-picker-item[data-value="4"],
       .ql-picker-item[data-value="5"] {
         &::before {
-          font-weight:normal;
-          font-size:1em;
+          font-weight: normal;
+          font-size: 1em;
           white-space: nowrap;
         }
       }

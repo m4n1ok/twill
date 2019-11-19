@@ -24,6 +24,12 @@ export default class Sticky {
 
     this.options = options
 
+    this.status = 'top'
+    this.ticking = false
+    this.anchors = ['Top', 'Bottom']
+    this.lastScrollPos = 0
+    this.prevScrollPos = -1
+
     // Target is the thing we want to get sticky
     // get required target
     if (this.options.target) this.target = this.container.querySelector('[' + this.options.target + '="' + this.containerID + '"]')
@@ -52,23 +58,18 @@ export default class Sticky {
    * @method Sticky#refresh
    * @memberof Sticky
    */
-  refresh = () => this._refresh()
+  refresh () {
+    return this._refresh()
+  }
 
   /**
    * Remove event and destroy
    * @method Sticky#dispose
    * @memberof Sticky
    */
-  dispose = () => this._dispose()
-
-  //
-  // Defaults
-  //
-  status = 'top'
-  ticking = false
-  anchors = [ 'Top', 'Bottom' ]
-  lastScrollPos = 0
-  prevScrollPos = -1
+  dispose () {
+    return this._dispose()
+  }
 
   //
   // Private methods
